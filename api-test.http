@@ -1,0 +1,64 @@
+### Pruebas de Desarrollo del Inventario
+### IMPORTANTE: Debas tener la terminal corriendo con `npm run start:dev` dentro de /backend
+
+### 1. ALMACENES: Crear el almacén base
+POST http://localhost:3000/almacenes
+Content-Type: application/json
+
+{
+    "nombre": "Almacén Principal",
+    "ubicacion": "CDMX"
+}
+
+### 2. PRODUCTOS: Registrar nuevo producto (Con stock inicial)
+POST http://localhost:3000/productos
+Content-Type: application/json
+
+{
+    "nombre": "Monitor Gamer 24 pulgadas",
+    "descripcion": "Monitor 144hz",
+    "precio": 3500,
+    "stock": 10,
+    "almacenId": 1
+}
+
+### 3. ALMACENES: Ver valor total del almacén
+GET http://localhost:3000/almacenes/valor-total
+
+### 4. MOVIMIENTOS: Registrar una Salida de inventario
+POST http://localhost:3000/movimientos/salida
+Content-Type: application/json
+
+{
+    "productoId": 1,
+    "cantidad": 2
+}
+
+### 4.1 MOVIMIENTOS: Registrar una Entrada de inventario
+POST http://localhost:3000/movimientos/entrada
+Content-Type: application/json
+
+{
+    "productoId": 1,
+    "cantidad": 5
+}
+
+### 5. PRODUCTOS: Listar los productos (Nota cómo el stock bajó a 8 automáticamente)
+GET http://localhost:3000/productos
+
+### 5.1 PRODUCTOS: Buscar producto específico por su nombre
+GET http://localhost:3000/productos?q=Monitor
+
+### 6. MOVIMIENTOS: Ver el historial de trazabilidad (Aquí verás el registro de quién y cuándo salió)
+GET http://localhost:3000/movimientos/historial
+
+### 7. PRODUCTOS: Actualizar el precio (PATCH)
+PATCH http://localhost:3000/productos/1
+Content-Type: application/json
+
+{
+    "precio": 3600
+}
+
+### 8. PRODUCTOS: Borrado Lógico (Soft Delete)
+DELETE http://localhost:3000/productos/1

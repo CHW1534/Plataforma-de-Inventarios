@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Almacen {
+  id        Int        @id @default(autoincrement())
+  nombre    String
+  ubicacion String?
+  productos Producto[]
+
+  deletedAt DateTime? 
+}
+
+model Producto {
+  id          Int       @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  precio      Float
+  stock       Int       @default(0)
+  
+  almacenId   Int
+  almacen     Almacen   @relation(fields: [almacenId], references: [id])
+  
+  movimientos Movimiento[]
+
+  deletedAt   DateTime?
+}
+
+model Movimiento {
+  id         Int       @id @default(autoincrement())
+  productoId Int
+  producto   Producto  @relation(fields: [productoId], references: [id])
+  tipo       String    // ENTRADA o SALIDA
+  cantidad   Int
+  fecha      DateTime  @default(now())
+}
