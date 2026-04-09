@@ -1,52 +1,39 @@
-# Root Dockerfile for Monorepo
-# Uses build-arg SERVICE_NAME to pick what to build/run (default: backend)
-
-FROM node:20-alpine AS builder
-ARG SERVICE_NAME=backend
-WORKDIR /app
-
-# Copy lockfiles and manifests
-COPY package.json package-lock.json* ./
-COPY backend/package.json backend/package-lock.json* ./backend/
-COPY frontend/package.json frontend/package-lock.json* ./frontend/
-
-# Install everything
+# --- Etapa 1: Build Frontend ---
+FROM node:20-alpine AS build-frontend
+WORKDIR /app/frontend
+COPY frontend/package.json ./
 RUN npm install
+COPY frontend/ .
+RUN npm run build
 
-# Copy source
-COPY . .
+# --- Etapa 2: Build Backend ---
+FROM node:20-alpine AS build-backend
+WORKDIR /app/backend
+COPY backend/package.json backend/package-lock.json* ./
+COPY backend/prisma ./prisma/
+RUN npm install
+# Generar cliente de Prisma
+RUN npx prisma generate
+COPY backend/ .
+RUN npm run build
 
-# IMPORTANT: Generate Prisma Client for TypeScript to recognize the models
-RUN cd backend && npx prisma generate
-
-# Build based on SERVICE_NAME
-RUN if [ "$SERVICE_NAME" = "frontend" ]; then \
-      npm run build:frontend; \
-    else \
-      npm run build:backend; \
-    \
-    fi
-
-# Production stage for Backend
-FROM node:20-alpine AS runner-backend
+# --- Etapa 3: Imagen Final (Monolito) ---
+FROM node:20-alpine
 WORKDIR /app
-COPY --from=builder /app/backend/dist ./backend/dist
-COPY --from=builder /app/backend/package.json ./backend/
-COPY --from=builder /app/backend/node_modules ./backend/node_modules
-COPY --from=builder /app/backend/prisma ./backend/prisma
-EXPOSE 3000
-ENV PORT=3000
+
 ENV NODE_ENV=production
-CMD ["sh", "-c", "cd backend && npx prisma db push --accept-data-loss && node dist/main"]
+ENV PORT=3000
 
-# Production stage for Frontend (Nginx)
-FROM nginx:alpine AS runner-frontend
-COPY --from=builder /app/frontend/dist /usr/share/nginx/html
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Copiar Backend compilado
+COPY --from=build-backend /app/backend/dist ./dist
+COPY --from=build-backend /app/backend/node_modules ./node_modules
+COPY --from=build-backend /app/backend/package.json ./package.json
+COPY --from=build-backend /app/backend/prisma ./prisma
 
-# Final stage selector
-# Note: Railway builds the last stage by default, but we can use TARGET or just specific Dockerfiles.
-# To make it "compile for sure" at root, we will default to Backend for the final stage.
-FROM runner-backend
+# Copiar Frontend compilado a la carpeta 'client' que servirá el Backend
+COPY --from=build-frontend /app/frontend/dist ./client
+
+EXPOSE 3000
+
+# Sincronizar BD e iniciar servidor
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/main"]
