@@ -37,7 +37,7 @@ COPY --from=builder /app/backend/prisma ./backend/prisma
 EXPOSE 3000
 ENV PORT=3000
 ENV NODE_ENV=production
-CMD ["sh", "-c", "cd backend && npx prisma db push --force && node dist/main"]
+CMD ["sh", "-c", "cd backend && npx prisma db push --accept-data-loss && node dist/main"]
 
 # Production stage for Frontend (Nginx)
 FROM nginx:alpine AS runner-frontend
