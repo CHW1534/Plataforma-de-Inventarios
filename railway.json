@@ -1,5 +1,9 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
+  },
   "services": {
     "backend": {
       "name": "inventario-backend",
@@ -9,10 +13,6 @@
       "build": {
         "builder": "DOCKERFILE",
         "dockerfilePath": "Dockerfile"
-      },
-      "deploy": {
-        "numReplicas": 1,
-        "sleepService": false
       }
     },
     "frontend": {
@@ -23,10 +23,6 @@
       "build": {
         "builder": "DOCKERFILE",
         "dockerfilePath": "Dockerfile"
-      },
-      "deploy": {
-        "numReplicas": 1,
-        "sleepService": false
       }
     }
   }

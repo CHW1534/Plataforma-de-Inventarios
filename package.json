@@ -1,0 +1,14 @@
+{
+  "name": "sistema-inventario-monorepo",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build:backend": "npm run build --prefix backend",
+    "build:frontend": "npm run build --prefix frontend",
+    "start:backend": "npm run start:prod --prefix backend",
+    "start:frontend": "npm run preview --prefix frontend"
+  }
+}
